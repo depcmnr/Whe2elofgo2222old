@@ -1,0 +1,112 @@
+// ==UserScript==
+// @name         https://wheelofgold.com/ done auto login
+// @namespace    http://tampermonkey.net/
+// @version      0.5
+// @description  Tự động nhấn "Claim Now" sau khi phát hiện captcha thành công, chỉ một lần
+// @author       You
+// @match        https://wheelofgold.com/*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // Biến kiểm tra trạng thái đã nhấn nút hay chưa
+    let hasClaimed = false;
+
+    // Hàm kiểm tra và nhấn nút Claim Now chỉ một lần
+    function checkAndClickClaim() {
+        if (!hasClaimed && document.body.innerHTML.includes('Antibot solved!') && document.querySelector('.iconcaptcha-widget.iconcaptcha-theme-dark.iconcaptcha-success')) {
+            // Đợi 6 giây sau khi phát hiện "Antibot solved!" trước khi kiểm tra captcha thành công
+            setTimeout(() => {
+                const claimButton = document.querySelector('#subbutt');
+                if (claimButton) {
+                    claimButton.click();
+                    console.log('Nút Claim Now đã được nhấn');
+                    hasClaimed = true; // Đánh dấu đã nhấn
+                } else {
+                    console.log('Không tìm thấy nút Claim Now');
+                }
+                // Ngừng kiểm tra sau khi đã nhấn nút
+                clearInterval(checkInterval);
+            }, 6000); // 6 giây
+        } else if (hasClaimed) {
+            console.log('Nút Claim Now đã được nhấn trước đó.');
+        } else {
+            console.log('Antibot chưa được giải quyết hoặc captcha không hiển thị');
+        }
+    }
+
+    // Biến lưu trữ ID của setInterval để có thể dừng nó sau khi đã nhấn nút
+    let checkInterval = setInterval(checkAndClickClaim, 1000);
+
+    // Chức năng đăng nhập tự động
+    (function() {
+        'use strict';
+
+        // Bước 1: Click vào nút Login/Register
+        const loginButton = document.querySelector('button[data-toggle="modal"][data-target="#login"]');
+        if (loginButton) {
+            loginButton.click();
+
+            // Delay 3 giây
+            setTimeout(() => {
+                // Bước 2: Điền email vào ô nhập email
+                const emailInput = document.getElementById('InputEmail');
+                if (emailInput) {
+                    emailInput.value = 'teampolicecat@gmail.com';
+
+                    // Bước 3: Kiểm tra captcha đã giải chưa
+                    let captchaSolved = false;
+
+                    function checkCaptchaAndClick() {
+                        const captchaContainer = document.querySelector('.cf-turnstile');
+                        const turnstileCompleted = captchaContainer ? captchaContainer.querySelector('[name="cf-turnstile-response"]') : null;
+
+                        if (turnstileCompleted && turnstileCompleted.value.trim() !== "") {
+                            console.log("CAPTCHA đã được giải.");
+                            if (!captchaSolved) {
+                                captchaSolved = true;
+                                document.querySelector('button[type="submit"].btn-outline-warning').click(); // Bước 4: Click vào nút login
+                            }
+                        } else {
+                            console.log('Captcha chưa được giải, đang kiểm tra lại...');
+                            setTimeout(checkCaptchaAndClick, 1000); // Kiểm tra lại sau 1 giây
+                        }
+                    }
+
+                    // Bắt đầu kiểm tra captcha
+                    checkCaptchaAndClick();
+                }
+            }, 3000);
+        }
+    })();
+
+    // Chức năng chuyển qua dashboard nếu thấy nút dashboard trên trang chủ
+    if (window.location.href === 'https://wheelofgold.com/') {
+        const dashboardLink = document.querySelector('a.btn.btn-outline-warning[href="https://wheelofgold.com/dashboard"]');
+        if (dashboardLink) {
+            window.location.href = 'https://wheelofgold.com/dashboard';
+        }
+    }
+
+})();
+
+// Tự động tải lại trang nếu quá thời gian
+(function() {
+    'use strict';
+    const timeout = 30 * 1000; // 30 giây
+
+    // Hàm tải lại trang sau khi hết thời gian
+    setTimeout(() => {
+        location.reload(); // Tải lại trang
+    }, timeout);
+})();
+
+// Di chuyển tự động qua USDT
+(function() {
+    'use strict';
+    if (window.location.href === 'https://wheelofgold.com/dashboard') {
+        window.location.href = 'https://wheelofgold.com/faucet/currency/usdt';
+    }
+})();
